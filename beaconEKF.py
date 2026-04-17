@@ -39,8 +39,8 @@ class BeaconEKF(Node):
         self.max_scan_range = 3.5
 
         # added odom noise for robustness test
-        self.noise_d = 0.1
-        self.noise_yaw = math.radians(1.0)
+        self.noise_d = 0.3
+        self.noise_yaw = math.radians(3.0)
         
         self.odom_shift_x = 0.0
         self.odom_shift_y = -0.0
@@ -170,9 +170,9 @@ class BeaconEKF(Node):
         r = np.asarray(msg.ranges, dtype=np.float32)
     
         # align scan yaw
-        LIDAR_YAW_OFF = np.pi / 2 
+        """"LIDAR_YAW_OFF = np.pi / 2 
         shift = int(round(LIDAR_YAW_OFF / float(msg.angle_increment)))
-        r = np.roll(r, shift)
+        r = np.roll(r, shift)"""
 
         
         # clamp / sanitize
@@ -339,6 +339,26 @@ class BeaconEKF(Node):
         I = np.eye(3)
         self.P = (I - K @ H) @ self.P @ (I - K @ H).T + K @ self.R @ K.T
 
+    def plot_covariance(self, nstd=2.0):
+        Pxy = self.P[:2, :2]   # covariance of x,y only
+
+        vals, vecs = np.linalg.eigh(Pxy)
+        order = vals.argsort()[::-1]
+        vals = vals[order]
+        vecs = vecs[:, order]
+
+        t = np.linspace(0, 2*np.pi, 100)
+        ellipse = np.array([
+            nstd * np.sqrt(vals[0]) * np.cos(t),
+            nstd * np.sqrt(vals[1]) * np.sin(t)
+        ])
+
+        ellipse = vecs @ ellipse
+        ex = self.x[0] + ellipse[0]
+        ey = self.x[1] + ellipse[1]
+
+        self.ax.plot(ex, ey, 'g--', linewidth=2, label=f'EKF {nstd}σ cov')
+
 
     def plot_lidar_world(self, msg):
         if not hasattr(self, 'odom_x'):
@@ -385,6 +405,8 @@ class BeaconEKF(Node):
             color='green', width=0.04
         )
 
+        self.plot_covariance()
+
         # legend
         #self.ax.plot([], [], color='black', linewidth=2, label='Ideal Odom')
         self.ax.plot([], [], color='red',   linewidth=2, label='Noisy Odom')
@@ -429,9 +451,12 @@ def main():
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    node.destroy_node()
-    rclpy.shutdown()
-
+    msg = Twist()
+    msg.linear.x = 0.0
+    msg.angular.z = 0.0
+    for _ in range(5):
+        self.cmd_pub.publish(msg)
+        rclpy.spin_once(self, timeout_sec=0.05)
 
 if __name__ == '__main__':
     main()
