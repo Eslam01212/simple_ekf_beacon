@@ -4,7 +4,7 @@
 ![Python](https://img.shields.io/badge/Python-3.x-green)
 ![Status](https://img.shields.io/badge/Status-Research%20Prototype-orange)
 ![License](https://img.shields.io/badge/License-MIT-lightgrey)
-
+![EKF localization with LiDAR cylinder beacons](ekf_beacons.png)
 A simple and practical ROS 2 Python project for **2D robot localization** using:
 
 - **wheel odometry**
@@ -25,6 +25,15 @@ It also includes optional parts useful for **sim-to-real transfer**, such as:
 - odometry noise injection for robustness testing
 
 > **Important:** Before using this code in a new robot or a new environment, you must adapt the beacon positions, cylinder dimensions, LiDAR alignment, and other tuning parameters.
+
+---
+
+## Media and Project Presentation
+
+For videos, media files, and the PowerPoint presentation that explains the project, see the shared Google Drive folder below:
+
+**Project media and presentation:**  
+<https://drive.google.com/drive/folders/1NxWmso-a9QZD_wPNid16bSE5ARKj8Jmd?usp=sharing>
 
 ---
 
